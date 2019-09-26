@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+    xmlns:context="http://www.springframework.org/schema/context"  
+    xmlns:mvc="http://www.springframework.org/schema/mvc"  
+    xmlns:p="http://www.springframework.org/schema/p"  
+    xsi:schemaLocation="http://www.springframework.org/schema/beans  
+            http://www.springframework.org/schema/beans/spring-beans.xsd  
+            http://www.springframework.org/schema/mvc  
+            http://www.springframework.org/schema/mvc/spring-mvc.xsd  
+            http://www.springframework.org/schema/context  
+            http://www.springframework.org/schema/context/spring-context.xsd"  
+            default-lazy-init="true"> 
+
+	<!-- shiro方面:开启shiro注解支持 -->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean> 
+
+    <!-- 将web.xml配置的shiroFilter注入到spring容器
+        id和web.xml的filter-name的值相同,或者和targetBeanName值相同
+     -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- 覆盖或赋值ShiroFilterFactoryBean的属性 -->
+        <!-- 指定securityManager -->
+        <property name="securityManager" ref="securityManager"/>
+        <!-- 认证提交地址,如果用户没有认证或认证失效,需要进行表单提交请求此地址进行身份认证(由formAuthentication进行表单认证)默认会自动寻找Web工程根目录下的"/login.jsp"页面 -->
+        <property name="loginUrl" value="/login"/>
+        <!-- 指定没有权限时跳转的页面(或者一个控制器的连接) -->
+        <property name="unauthorizedUrl" value="/refuse.jsp"/>
+        <!-- 指定认证成功的跳转页面,如果不设置,默认跳回上一个url-->
+        <property name="successUrl" value="/main"/>
+        <!-- shiro的自定义filter配置,会从上往下一个个过滤 -->
+        <property name="filters">
+            <map>
+                <!-- 所有自定义filter都在这配置,将自定义的FormAuthenticationFilter注入shiro的filter中 -->
+                <entry key="authc" value-ref="formAuthenticationFilter" />
+            </map>
+        </property>
+        <!-- 过滤规则,从上到下顺序执行,一般将/**放在最下面 -->
+        <property name="filterChainDefinitions">
+            <value>
+            	/=anon
+                <!-- /**:所有的地址   anon:匿名访问   所有地址都可以匿名访问-->
+                <!-- /login=authc -->
+                <!-- 指定访问shiro自带的退出登录的连接,shiro会清除session /logout:url  logout:shiro自带的退出登陆的方法-->
+                /logout=logout
+                <!-- 首页可以匿名访问 -->
+                /codeImage.jsp=anon
+                <!-- 配置记住我或有认证信息可以访问的连接,user权限就是 -->
+                /main = user <!-- 只有main能在记住我状态和用户信息不为空的情况下能访问,其他连接会往下走authc认证 -->
+                <!--
+                 需要授权的连接 格式:连接 = perms[权限字符串标示] ，认证失败,会跳转unauthorizedUrl的地址，只有这里配置的连接才会去realm检测权限
+                 缺点:配置太多
+                解决方法:注解和jsp标签方式配置,注解需要在spring配置文件开启,然后在controller上添加注解
+                -->
+                /ueditor/**  = anon
+                /css/** = anon
+                /js/** = anon
+                /images/** = anon
+                <!-- /items/query = perms[item:query] --><!-- 换成使用注解方式配置 -->
+                <!-- /**:所有的地址   authc:需要认证 -->
+                
+                /**=authc
+            </value>
+        </property>
+    </bean>
+
+    <!-- securityManager安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- 使用自定义realm认证 -->
+        <property name="realm" ref="customRealm"/>
+        <!-- 注入缓存管理器,第一次授权会请求realm,后面的授权都不会请求realm -->
+        <property name="cacheManager" ref="cacheManager" />
+        <!-- 注入session管理器 -->
+        <property name="sessionManager" ref="sessionManager"/>
+        <!-- 注入记住我remeberMeManager管理器 -->
+        <property name="rememberMeManager" ref="rememberMeManager"/>
+    </bean>
+
+    <!-- 自定义realm -->
+    <bean id="customRealm" class="com.admin.shiro.CustomRealm">
+        <!-- 将凭证匹配器注入到realm-->
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+    </bean>
+
+    <!-- 配置凭证匹配器:指定散列算法,散列次数 -->
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <!-- 散列算法 -->
+        <property name="hashAlgorithmName" value="md5"/>
+        <!-- 散列次数 -->
+        <property name="hashIterations" value="1"/>
+    </bean>
+
+    <!-- ehcache缓存管理器   value为ehcache配置文件位置-->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:shiro-ehcache.xml" />
+    </bean>
+
+    <!-- 会话管理,session交给shiro管理 -->   
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <!-- session的超时时间  毫秒-->
+        <property name="globalSessionTimeout" value="16000000"/>
+        <!-- 是否删除已经失效的session数据 -->
+        <property name="deleteInvalidSessions" value="true"/>
+    </bean>
+
+    <!-- 配置form认证过滤器为自定义的,不配置会使用系统默认的,也可以直接配置系统默认的,并修改账号密码的字段名 -->
+    <bean id="formAuthenticationFilter" class="com.admin.shiro.CustomFormAuthenticationFilter">
+        <!-- 设置表单中账号的input的name值 -->
+        <property name="usernameParam" value="username"/>
+        <!-- 设置表单中密码的input的name值 -->
+        <property name="passwordParam" value="password"/>
+        <!-- 设置记住我的input的name值 -->
+        <property name="rememberMeParam" value="rememberMe"/>
+    </bean>
+
+    <!-- remenerMeManager管理器，写cookie，取cookie，生成用户信息 -->
+    <bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <property name="cookie" ref="rememberMeCookie" />
+    </bean>
+
+    <!-- 记住我cookie信息 -->
+    <bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <!-- 生成cookie的名字 -->
+        <constructor-arg value="remeberMe" />
+        <!-- cookie的存在时间(30天)  秒-->
+        <property name="maxAge" value="2592000"/>
+    </bean>
+    
+    <!-- 解决无权限不跳页面 -->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+            	<!-- 被试图解析器解析的页面名称 -->
+                <prop key="org.apache.shiro.authz.UnauthorizedException">/refuse</prop>
+            </props>
+        </property>
+    </bean>
+
+</beans>

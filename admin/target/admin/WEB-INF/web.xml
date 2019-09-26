@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 基本表头 -->
+<web-app version="2.5" 
+    xmlns="http://java.sun.com/xml/ns/javaee" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+    http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <display-name></display-name> 
+  
+  <!-- 配置springmvc -->  
+    <servlet>  
+        <servlet-name>springMVC</servlet-name>  
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>  
+        <init-param>  
+            <param-name>contextConfigLocation</param-name>  
+            <param-value>classpath:spring-mvc.xml</param-value>  
+        </init-param>  
+        <load-on-startup>1</load-on-startup>
+    </servlet>  
+    <servlet-mapping>  
+        <servlet-name>springMVC</servlet-name>  
+        <url-pattern>/</url-pattern>  
+    </servlet-mapping> 
+    
+    <!-- 配置 Spring -->  
+    <context-param>  
+        <param-name>contextConfigLocation</param-name>  
+        <param-value>classpath:spring.xml,classpath:spring-shiro.xml,classpath:spring-mvc.xml</param-value>  
+    </context-param>  
+    <listener>  
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>  
+    </listener>  
+    <!-- 防止Spring内存溢出监听器 -->  
+    <listener>  
+        <listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>  
+    </listener>  
+    
+    <!-- 字符集过滤器 -->  
+    <filter>  
+        <filter-name>encodingFilter</filter-name>  
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>  
+        <init-param>  
+            <param-name>encoding</param-name>  
+            <param-value>UTF-8</param-value>  
+        </init-param>  
+        <init-param>  
+            <param-name>forceEncoding</param-name>  
+            <param-value>true</param-value>  
+        </init-param>  
+    </filter>  
+    <filter-mapping>  
+        <filter-name>encodingFilter</filter-name>  
+        <url-pattern>/*</url-pattern>  
+    </filter-mapping>   
+    
+    <filter>
+	    <!-- 任意,但注入spring的时候ref名字要和这个相同,或者通过targetBeanName修改 -->
+	    <filter-name>shiroFilter</filter-name>
+	    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	    <!-- 是否由servlet容器控制filter的生命周期true:是 -->
+	    <init-param>
+	        <!-- 覆盖DelegatingFilterProxy的属性默认配置或赋值 -->
+	        <param-name>targetFilterLifecycle</param-name>
+	        <param-value>true</param-value>
+	    </init-param>
+	    <!-- 修改spring容器注入filter时的id名字,如果不设置,则用filter-name标签的值 -->
+	    <init-param>
+	        <param-name>targetBeanName</param-name>
+	        <param-value>shiroFilter</param-value>
+	    </init-param>
+	  </filter>
+	  
+	  <!-- 过滤设置 -->
+	  <filter-mapping>
+	    <filter-name>shiroFilter</filter-name>
+	    <url-pattern>/*</url-pattern>
+	  </filter-mapping>
+    
+    <welcome-file-list>
+    	<welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <filter>
+        <filter-name>HiddenHttpMethodFilter</filter-name>
+        <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>HiddenHttpMethodFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+  
+</web-app>

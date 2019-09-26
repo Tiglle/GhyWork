@@ -1,0 +1,134 @@
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+* {
+	margin: 0;
+	padding: 0;
+	font-style: normal;
+}
+body{
+	font-family:"微软雅黑","Microsoft Yahei","Arial","Helvetica","sans-serif";
+}
+.news1{
+	margin:100px 0 25px 0;
+	/*border:solid 1px red;*/
+	width:100%;
+
+}
+.news2{
+	text-align: center;
+    padding: 40px 0;
+    line-height: 36px;
+    overflow: hidden;
+}
+.news2 h3 {
+    font-size: 30px;
+    color: #002;
+    margin-bottom: 10px;
+}
+.news2 h5 {
+    font-size: 20px;
+    color: #cacace;
+    text-transform: uppercase;
+    font-family: Arial;
+}
+.news4{
+	width:100%;
+}
+.news4 ul{
+	margin: 0 auto;
+	width:80%;
+}
+.news4 ul li{
+	/*border:1px blue solid;*/
+	padding: 0 10px 10px 10px;
+	border: 1px dotted gray;
+	height:170px;
+	margin:30px 0 0 0;
+	box-shadow: 10px 10px 5px #888888;
+	border-radius:15px;
+}
+.news4 h2{
+	font-weight: 500;
+	font-size:25px;
+	margin:10px 0 20px 30px;
+}
+.news4 p{
+	color:pink;
+	text-indent: 30px;
+	font-size: 15px;
+}
+.news4 p:hover{
+	text-decoration:underline;
+}
+.page{
+	width: 50%;
+	padding:0 0 40px 0;
+	margin:0 auto;
+	height:80px;
+}
+.page a{
+	font-size:18px;
+}
+.page a:hover{
+	text-decoration:underline;
+}
+.page .a2{
+	float:right;
+}
+.newsdetail1{
+	margin:0 auto;
+	width:80%;
+	text-align: center;
+	margin-bottom: 50px;
+}
+.newsdetail2{
+	box-shadow: 10px 10px 5px #888888;
+	border-radius:15px;
+	border: 1px dotted gray;
+}
+.newsdetail2 .title{
+	font-size: 25px;
+	padding:10px;
+}
+.newsdetail2 .time{
+	padding:0 0 20px 0;
+	font-size: 15px;
+	color:#bfbebe;
+}
+.newsdetail2 .content{
+	padding:0 50px 50px 50px;
+	font-size: 15px;
+	text-indent:30px;
+	text-align: left;
+	color:gray;
+	line-height:28px;
+}
+.page1{
+	font-size:18px;
+	text-align: left;
+	width:70%;
+	margin:0 auto;
+	padding:30px 0 0 10px;
+	height:80px;
+}
+.footer{
+	margin:100px 0 0 0;
+}
+.contentp{
+	text-align:right;
+	margin-right:10px;
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
+}
+.myweibo{
+	font-size:15px;
+}
+.myweibo:hover{
+	text-decoration: underline;
+}
+

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd   
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd   
+             http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--定时任务-->
+    <task:annotation-driven scheduler="qbScheduler" mode="proxy"/>
+    <task:scheduler id="qbScheduler" />
+            
+    <!-- 分解配置 jdbc.properites -->  
+    <context:property-placeholder location="classpath:jdbc.properties" />
+
+    <bean id="dataSource"   class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+        <!-- 数据库驱动 -->
+        <property name="driverClassName"><value>${jdbc.driverClassName}</value></property>
+        <!-- ur地址 -->
+        <property name="url"><value>${jdbc.url}</value></property>
+        <!-- 用户名 -->
+        <property name="username"><value>${jdbc.username}</value></property>
+        <!-- 密码 -->
+        <property name="password" ><value>${jdbc.password}</value></property>
+        <!-- 密码 -->
+        <property name="filters" ><value>${jdbc.filters}</value></property>
+        <!-- 初始化连接数量 -->
+        <property name="initialSize" ><value>${jdbc.initialSize}</value></property>
+        <!-- 最大并发连接数 -->
+        <property name="maxActive"><value>${jdbc.maxActive}</value> </property>
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait"><value>${jdbc.maxWait}</value> </property>
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis"><value>${jdbc.timeBetweenEvictionRunsMillis}</value> </property>
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis"><value>${jdbc.minEvictableIdleTimeMillis}</value> </property>
+        <!--   用来检测连接是否有效的sql，要求是一个查询语句 -->
+        <property name="validationQuery"><value>${jdbc.validationQuery}</value> </property>
+        <!-- 建议配置为true，不影响性能，并且保证安全性。 申请连接的时候检测，如果空闲时间大于 timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效 -->
+        <property name="testWhileIdle"><value>${jdbc.testWhileIdle}</value> </property>
+        <!-- 要启用PSCache，必须配置大于0，当大于0时， poolPreparedStatements自动触发修改为true。 在Druid中，不会存在Oracle下PSCache占用内存过多的问题， 可以把这个数值配置大一些，比如说10-->
+        <property name="maxOpenPreparedStatements"><value>${jdbc.maxOpenPreparedStatements}</value> </property>
+        <!-- 打开 removeAbandoned 功能 -->
+        <property name="removeAbandoned"><value>${jdbc.removeAbandoned}</value> </property>
+        <!-- 1800 秒，也就是 30 分钟 -->
+        <property name="removeAbandonedTimeout"><value>${jdbc.removeAbandonedTimeout}</value> </property>
+        <!--关闭 abanded 连接时输出错误日志-->
+        <property name="logAbandoned"><value>${jdbc.logAbandoned}</value> </property>
+    </bean>
+
+    <!-- 使用annotation定义事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
+
+    <!-- 定义个通知，指定事务管理器 -->
+    <tx:advice id="readTxAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+            <tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Exception" />
+            <tx:method name="delete*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+            <tx:method name="*remove*" propagation="REQUIRED"   rollback-for="java.lang.Exception"/>
+        </tx:attributes>
+    </tx:advice>
+
+     <!-- sessionFactory 将dataSource -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
+        <property name="dataSource" ref="dataSource" />  
+        <property name="configLocation" value="classpath:spring-mybatis.xml" />  
+        <property name="mapperLocations" value="classpath*:mapping/*.xml" />  
+    </bean>
+    
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="com.ghy.dao" />  
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />  
+    </bean>  
+    
+     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+        <property name="dataSource" ref="dataSource" />  
+    </bean>  
+
+</beans>
